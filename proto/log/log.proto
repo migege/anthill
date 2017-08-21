@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package migege.anthill.log;
+
+service Logger {
+    rpc Log(LogRequest) returns (LogResponse) {}
+}
+
+message LogRequest {
+    string info = 1;
+}
+
+message LogResponse {
+    string msg = 1;
+}
