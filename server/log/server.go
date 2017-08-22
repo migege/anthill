@@ -20,7 +20,9 @@ type Logger struct{}
 func (this *Logger) Log(ctx context.Context, req *ahlog.LogRequest, rsp *ahlog.LogResponse) error {
 	if md, ok := metadata.FromContext(ctx); ok {
 		user := md["X-User-Id"]
-		writer.Write(user, req.Info)
+		pid := md["X-Process-Id"]
+		ts := md["X-Timestamp"]
+		writer.Write(user, pid, ts, req.Info)
 	}
 	return nil
 }
