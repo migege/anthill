@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package migege.anthill.user;
+
+service UserService {
+    rpc Register(User) returns (Account) {}
+    rpc Login(User) returns (Account) {}
+}
+
+message User {
+    string phone = 1;
+    string username = 2;
+    string password = 3;
+}
+
+message Account {
+    User user = 1;
+    int64 ts_expire = 2;
+    bool frozen = 3;
+}

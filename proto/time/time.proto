@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package migege.anthill.time;
+
+service TimeService {
+    rpc Now(Time) returns (Time) {}
+}
+
+message Time {
+    int64 ts = 1;
+    int64 ts_utc = 2;
+}
