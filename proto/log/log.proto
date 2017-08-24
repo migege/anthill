@@ -3,13 +3,12 @@ syntax = "proto3";
 package migege.anthill.log;
 
 service Logger {
-    rpc Log(LogRequest) returns (LogResponse) {}
+    rpc Log(Info) returns (Info) {}
+    rpc LogStatus(Info) returns (Info) {}
+    rpc GetStatus(Info) returns (Info) {}
 }
 
-message LogRequest {
+message Info {
     string info = 1;
-}
-
-message LogResponse {
-    string msg = 1;
+    int64 ts = 2;
 }

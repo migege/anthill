@@ -3,23 +3,51 @@ package main
 import (
 	"fmt"
 	"os"
+	"time"
 )
 
 type Writer struct {
-	UserFileMap map[string]*os.File
+	UserFileMap map[string]struct {
+		F  *os.File
+		Ts int64
+	}
 }
 
-func (this *Writer) Write(user, pid, ts, info string) {
-	k := fmt.Sprintf("%s|%s|%s", user, pid, ts)
+func (this *Writer) GC() {
+	var l []string
+	now := time.Now().Unix()
+	for k, v := range this.UserFileMap {
+		if v.F != nil && now-v.Ts > 10*60 {
+			v.F.Close()
+			l = append(l, k)
+		}
+	}
+	for _, k := range l {
+		delete(this.UserFileMap, k)
+	}
+}
+
+func (this *Writer) Write(user, host, pid, info string) {
+	k := fmt.Sprintf("%s@%s/%s", user, host, pid)
 	var f *os.File
-	if v, ok := this.UserFileMap[k]; ok && v != nil {
-		f = v
+	if v, ok := this.UserFileMap[k]; ok && v.F != nil {
+		f = v.F
+
+		this.UserFileMap[k] = struct {
+			F  *os.File
+			Ts int64
+		}{f, time.Now().Unix()}
 	} else {
-		f, err := os.OpenFile(fmt.Sprintf("/home/aib/apps/ant/logs/%s-%s.%s.log", user, pid, ts), os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0666)
+		fn := fmt.Sprintf("/home/aib/apps/ant/logs/%s.%s.%s.log", user, host, pid)
+		f, err := os.OpenFile(fn, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0666)
 		if err != nil {
 			panic(err)
 		}
-		this.UserFileMap[k] = f
+
+		this.UserFileMap[k] = struct {
+			F  *os.File
+			Ts int64
+		}{f, time.Now().Unix()}
 	}
 
 	f.WriteString(info + "\n")
