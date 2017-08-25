@@ -8,6 +8,10 @@ import (
 	"golang.org/x/net/context"
 )
 
+const (
+	SERVICE_NAME = "com.mayibot.ah.time"
+)
+
 type TimeHandler struct{}
 
 func (t *TimeHandler) Now(ctx context.Context, req *ahtime.Time, rsp *ahtime.Time) error {
@@ -17,7 +21,7 @@ func (t *TimeHandler) Now(ctx context.Context, req *ahtime.Time, rsp *ahtime.Tim
 }
 
 func main() {
-	service := micro.NewService(micro.Name("migege.anthill.time"), micro.RegisterTTL(30*time.Second), micro.RegisterInterval(10*time.Second))
+	service := micro.NewService(micro.Name(SERVICE_NAME), micro.RegisterTTL(30*time.Second), micro.RegisterInterval(10*time.Second))
 	service.Init()
 
 	ahtime.RegisterTimeServiceHandler(service.Server(), new(TimeHandler))

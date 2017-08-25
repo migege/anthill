@@ -12,6 +12,10 @@ import (
 	ahlog "github.com/migege/anthill/proto/log"
 )
 
+const (
+	SERVICE_NAME = "com.mayibot.ah.log"
+)
+
 var (
 	writer      *Writer
 	statusCache map[string]ahlog.Info
@@ -65,16 +69,18 @@ func init() {
 }
 
 func main() {
-	service := micro.NewService(micro.Name("migege.anthill.log"), micro.RegisterTTL(30*time.Second), micro.RegisterInterval(10*time.Second))
+	service := micro.NewService(micro.Name(SERVICE_NAME), micro.RegisterTTL(30*time.Second), micro.RegisterInterval(10*time.Second))
 	service.Init()
 
 	ahlog.RegisterLoggerHandler(service.Server(), new(Logger))
 
 	ticker := time.NewTicker(1 * time.Minute)
 	go func() {
-		select {
-		case <-ticker.C:
-			writer.GC()
+		for {
+			select {
+			case <-ticker.C:
+				writer.GC()
+			}
 		}
 	}()
 

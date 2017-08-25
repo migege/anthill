@@ -23,7 +23,7 @@ func init() {
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
 			Name:  "s",
-			Value: "ah.migege.com:8500",
+			Value: "ah.mayibot.com:8500",
 			Usage: "anthill address info",
 		},
 		cli.StringFlag{
@@ -51,9 +51,9 @@ func init() {
 }
 
 func main() {
-	cmd.Init(cmd.Name("ant client"), cmd.Version("11.0.4"))
+	cmd.Init(cmd.Name("ant client"), cmd.Version("15.0.0"))
 
-	c := log.NewLoggerClient("migege.anthill.log", client.NewClient(client.Registry(registry.NewRegistry(registry.Addrs(registry_address)))))
+	c := log.NewLoggerClient("com.mayibot.ah.log", client.NewClient(client.Registry(registry.NewRegistry(registry.Addrs(registry_address)))))
 	ctx := metadata.NewContext(context.Background(), map[string]string{
 		"X-User-Id":    ant_user,
 		"X-From-Id":    "ant",
