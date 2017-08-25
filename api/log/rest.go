@@ -54,7 +54,7 @@ func main() {
 	ws := new(restful.WebService)
 	ws.Consumes(restful.MIME_JSON)
 	ws.Produces(restful.MIME_JSON)
-	ws.Path("/status")
+	ws.Path("/log")
 	ws.Route(ws.GET("/{name}").To(logger.Status))
 
 	wc.Add(ws)
