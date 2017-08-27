@@ -17,8 +17,8 @@ const (
 )
 
 var (
-	writer      *Writer
-	statusCache map[string]ahlog.Info
+	writer         *Writer
+	status_channel map[string]chan ahlog.Info
 )
 
 type Logger struct{}
@@ -40,21 +40,34 @@ func (this *Logger) LogStatus(ctx context.Context, req *ahlog.Info, rsp *ahlog.I
 		host := md["X-Host"]
 
 		key := fmt.Sprintf("%s@%s/%s", user, host, pid)
-		statusCache[key] = *req
+		if _, ok := status_channel[key]; !ok {
+			status_channel[key] = make(chan ahlog.Info, 10)
+		}
+
+		select {
+		case status_channel[key] <- *req:
+			return nil
+		default:
+			return nil
+		}
 	}
 	return nil
 }
 
-func (this *Logger) GetStatus(ctx context.Context, req *ahlog.Info, rsp *ahlog.Info) error {
+func (this *Logger) Status(ctx context.Context, req *ahlog.Info, stream ahlog.Logger_StatusStream) error {
 	if md, ok := metadata.FromContext(ctx); ok {
 		user := md["X-User-Id"]
 		pid := md["X-Process-Id"]
 		host := md["X-Host"]
 
 		key := fmt.Sprintf("%s@%s/%s", user, host, pid)
-		if c, ok := statusCache[key]; ok {
-			rsp.Info = c.Info
-			rsp.Ts = c.Ts
+		for {
+			select {
+			case c := <-status_channel[key]:
+				if err := stream.Send(&ahlog.Info{Info: c.Info, Ts: c.Ts}); err != nil {
+					return err
+				}
+			}
 		}
 	}
 	return nil
@@ -65,7 +78,7 @@ func init() {
 		F  *os.File
 		Ts int64
 	})}
-	statusCache = make(map[string]ahlog.Info)
+	status_channel = make(map[string]chan ahlog.Info)
 }
 
 func main() {

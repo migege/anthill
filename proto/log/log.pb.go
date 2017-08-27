@@ -2,7 +2,7 @@
 // source: github.com/migege/anthill/proto/log/log.proto
 
 /*
-Package migege_anthill_log is a generated protocol buffer package.
+Package com_mayibot_ah_log is a generated protocol buffer package.
 
 It is generated from these files:
 	github.com/migege/anthill/proto/log/log.proto
@@ -10,7 +10,7 @@ It is generated from these files:
 It has these top-level messages:
 	Info
 */
-package migege_anthill_log
+package com_mayibot_ah_log
 
 import proto "github.com/golang/protobuf/proto"
 import fmt "fmt"
@@ -58,7 +58,7 @@ func (m *Info) GetTs() int64 {
 }
 
 func init() {
-	proto.RegisterType((*Info)(nil), "migege.anthill.log.Info")
+	proto.RegisterType((*Info)(nil), "com.mayibot.ah.log.Info")
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -71,7 +71,7 @@ var _ server.Option
 type LoggerClient interface {
 	Log(ctx context.Context, in *Info, opts ...client.CallOption) (*Info, error)
 	LogStatus(ctx context.Context, in *Info, opts ...client.CallOption) (*Info, error)
-	GetStatus(ctx context.Context, in *Info, opts ...client.CallOption) (*Info, error)
+	Status(ctx context.Context, in *Info, opts ...client.CallOption) (Logger_StatusClient, error)
 }
 
 type loggerClient struct {
@@ -84,7 +84,7 @@ func NewLoggerClient(serviceName string, c client.Client) LoggerClient {
 		c = client.NewClient()
 	}
 	if len(serviceName) == 0 {
-		serviceName = "migege.anthill.log"
+		serviceName = "com.mayibot.ah.log"
 	}
 	return &loggerClient{
 		c:           c,
@@ -112,14 +112,48 @@ func (c *loggerClient) LogStatus(ctx context.Context, in *Info, opts ...client.C
 	return out, nil
 }
 
-func (c *loggerClient) GetStatus(ctx context.Context, in *Info, opts ...client.CallOption) (*Info, error) {
-	req := c.c.NewRequest(c.serviceName, "Logger.GetStatus", in)
-	out := new(Info)
-	err := c.c.Call(ctx, req, out, opts...)
+func (c *loggerClient) Status(ctx context.Context, in *Info, opts ...client.CallOption) (Logger_StatusClient, error) {
+	req := c.c.NewRequest(c.serviceName, "Logger.Status", &Info{})
+	stream, err := c.c.Stream(ctx, req, opts...)
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	if err := stream.Send(in); err != nil {
+		return nil, err
+	}
+	return &loggerStatusClient{stream}, nil
+}
+
+type Logger_StatusClient interface {
+	SendMsg(interface{}) error
+	RecvMsg(interface{}) error
+	Close() error
+	Recv() (*Info, error)
+}
+
+type loggerStatusClient struct {
+	stream client.Streamer
+}
+
+func (x *loggerStatusClient) Close() error {
+	return x.stream.Close()
+}
+
+func (x *loggerStatusClient) SendMsg(m interface{}) error {
+	return x.stream.Send(m)
+}
+
+func (x *loggerStatusClient) RecvMsg(m interface{}) error {
+	return x.stream.Recv(m)
+}
+
+func (x *loggerStatusClient) Recv() (*Info, error) {
+	m := new(Info)
+	err := x.stream.Recv(m)
+	if err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 // Server API for Logger service
@@ -127,7 +161,7 @@ func (c *loggerClient) GetStatus(ctx context.Context, in *Info, opts ...client.C
 type LoggerHandler interface {
 	Log(context.Context, *Info, *Info) error
 	LogStatus(context.Context, *Info, *Info) error
-	GetStatus(context.Context, *Info, *Info) error
+	Status(context.Context, *Info, Logger_StatusStream) error
 }
 
 func RegisterLoggerHandler(s server.Server, hdlr LoggerHandler, opts ...server.HandlerOption) {
@@ -146,23 +180,55 @@ func (h *Logger) LogStatus(ctx context.Context, in *Info, out *Info) error {
 	return h.LoggerHandler.LogStatus(ctx, in, out)
 }
 
-func (h *Logger) GetStatus(ctx context.Context, in *Info, out *Info) error {
-	return h.LoggerHandler.GetStatus(ctx, in, out)
+func (h *Logger) Status(ctx context.Context, stream server.Streamer) error {
+	m := new(Info)
+	if err := stream.Recv(m); err != nil {
+		return err
+	}
+	return h.LoggerHandler.Status(ctx, m, &loggerStatusStream{stream})
+}
+
+type Logger_StatusStream interface {
+	SendMsg(interface{}) error
+	RecvMsg(interface{}) error
+	Close() error
+	Send(*Info) error
+}
+
+type loggerStatusStream struct {
+	stream server.Streamer
+}
+
+func (x *loggerStatusStream) Close() error {
+	return x.stream.Close()
+}
+
+func (x *loggerStatusStream) SendMsg(m interface{}) error {
+	return x.stream.Send(m)
+}
+
+func (x *loggerStatusStream) RecvMsg(m interface{}) error {
+	return x.stream.Recv(m)
+}
+
+func (x *loggerStatusStream) Send(m *Info) error {
+	return x.stream.Send(m)
 }
 
 func init() { proto.RegisterFile("github.com/migege/anthill/proto/log/log.proto", fileDescriptor0) }
 
 var fileDescriptor0 = []byte{
-	// 175 bytes of a gzipped FileDescriptorProto
+	// 186 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xd2, 0x4d, 0xcf, 0x2c, 0xc9,
 	0x28, 0x4d, 0xd2, 0x4b, 0xce, 0xcf, 0xd5, 0xcf, 0xcd, 0x4c, 0x4f, 0x4d, 0x4f, 0xd5, 0x4f, 0xcc,
 	0x2b, 0xc9, 0xc8, 0xcc, 0xc9, 0xd1, 0x2f, 0x28, 0xca, 0x2f, 0xc9, 0xd7, 0xcf, 0xc9, 0x4f, 0x07,
-	0x61, 0x3d, 0x30, 0x4f, 0x48, 0x08, 0xa2, 0x46, 0x0f, 0xaa, 0x46, 0x2f, 0x27, 0x3f, 0x5d, 0x49,
-	0x8b, 0x8b, 0xc5, 0x33, 0x2f, 0x2d, 0x5f, 0x48, 0x88, 0x8b, 0x25, 0x33, 0x2f, 0x2d, 0x5f, 0x82,
-	0x51, 0x81, 0x51, 0x83, 0x33, 0x08, 0xcc, 0x16, 0xe2, 0xe3, 0x62, 0x2a, 0x29, 0x96, 0x60, 0x52,
-	0x60, 0xd4, 0x60, 0x0e, 0x62, 0x2a, 0x29, 0x36, 0x3a, 0xcd, 0xc8, 0xc5, 0xe6, 0x93, 0x9f, 0x9e,
-	0x9e, 0x5a, 0x24, 0x64, 0xcd, 0xc5, 0xec, 0x93, 0x9f, 0x2e, 0x24, 0xa1, 0x87, 0x69, 0xa4, 0x1e,
-	0xc8, 0x3c, 0x29, 0x9c, 0x32, 0x4a, 0x0c, 0x42, 0x8e, 0x5c, 0x9c, 0x3e, 0xf9, 0xe9, 0xc1, 0x25,
-	0x89, 0x25, 0xa5, 0xc5, 0xe4, 0x1b, 0xe1, 0x9e, 0x5a, 0x42, 0x89, 0x11, 0x49, 0x6c, 0xe0, 0x40,
-	0x31, 0x06, 0x04, 0x00, 0x00, 0xff, 0xff, 0x78, 0xb3, 0x22, 0x3c, 0x45, 0x01, 0x00, 0x00,
+	0x61, 0x3d, 0x30, 0x4f, 0x48, 0x28, 0x39, 0x3f, 0x57, 0x2f, 0x37, 0xb1, 0x32, 0x33, 0x29, 0xbf,
+	0x44, 0x2f, 0x31, 0x43, 0x2f, 0x27, 0x3f, 0x5d, 0x49, 0x8b, 0x8b, 0xc5, 0x33, 0x2f, 0x2d, 0x5f,
+	0x48, 0x88, 0x8b, 0x25, 0x33, 0x2f, 0x2d, 0x5f, 0x82, 0x51, 0x81, 0x51, 0x83, 0x33, 0x08, 0xcc,
+	0x16, 0xe2, 0xe3, 0x62, 0x2a, 0x29, 0x96, 0x60, 0x52, 0x60, 0xd4, 0x60, 0x0e, 0x62, 0x2a, 0x29,
+	0x36, 0x3a, 0xc5, 0xc8, 0xc5, 0xe6, 0x93, 0x9f, 0x9e, 0x9e, 0x5a, 0x24, 0x64, 0xcd, 0xc5, 0xec,
+	0x93, 0x9f, 0x2e, 0x24, 0xa1, 0x87, 0x69, 0xa4, 0x1e, 0xc8, 0x3c, 0x29, 0x9c, 0x32, 0x4a, 0x0c,
+	0x42, 0x8e, 0x5c, 0x9c, 0x3e, 0xf9, 0xe9, 0xc1, 0x25, 0x89, 0x25, 0xa5, 0xc5, 0x64, 0x1a, 0xe1,
+	0xc0, 0xc5, 0x46, 0x89, 0x7e, 0x03, 0xc6, 0x24, 0x36, 0x70, 0x98, 0x18, 0x03, 0x02, 0x00, 0x00,
+	0xff, 0xff, 0xfd, 0x5c, 0x08, 0x9d, 0x44, 0x01, 0x00, 0x00,
 }

@@ -1,11 +1,11 @@
 syntax = "proto3";
 
-package migege.anthill.log;
+package com.mayibot.ah.log;
 
 service Logger {
     rpc Log(Info) returns (Info) {}
     rpc LogStatus(Info) returns (Info) {}
-    rpc GetStatus(Info) returns (Info) {}
+    rpc Status(Info) returns (stream Info) {}
 }
 
 message Info {

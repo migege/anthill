@@ -3,3 +3,4 @@ build/server_*
 build/client/
 build/server/
 build/api/
+build/web/

@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/micro/cli"
 	"github.com/micro/go-micro/client"
@@ -61,12 +60,16 @@ func main() {
 		"X-Process-Id": ant_pid,
 	})
 
-	var lastTs int64 = 0
-	for {
-		if info, err := c.GetStatus(ctx, &log.Info{}); err == nil && info != nil && len(info.Info) > 0 && lastTs < info.Ts {
-			lastTs = info.Ts
-			fmt.Println(info.Info)
+	if stream, err := c.Status(ctx, &log.Info{}); err == nil {
+		for {
+			rsp, err := stream.Recv()
+			if err != nil {
+				fmt.Println(err)
+				break
+			}
+			fmt.Println(rsp.Info)
 		}
-		time.Sleep(1 * time.Second)
+	} else {
+		fmt.Println(err)
 	}
 }
