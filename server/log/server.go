@@ -63,7 +63,7 @@ func (this *Logger) Status(ctx context.Context, req *ahlog.Info, stream ahlog.Lo
 		host := md["X-Host"]
 
 		key := fmt.Sprintf("%s@%s/%s", user, host, pid)
-		ch_sub := make(chan ahlog.Info)
+		ch_sub := make(chan ahlog.Info, 1)
 		lock_sub_status.Lock()
 		ch_sub_status[key] = append(ch_sub_status[key], ch_sub)
 		lock_sub_status.Unlock()
