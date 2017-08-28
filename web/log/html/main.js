@@ -1,6 +1,4 @@
 var wsUri;
-var output;
-var count;
 var ws;
 
 window.addEventListener("load", function(evt) {
@@ -40,19 +38,14 @@ window.addEventListener("load", function(evt) {
 
     var newSocket = function() {
         ws = new WebSocket(wsUri);
-        ws.onopen = function(evt) {
-            //print('<span style="color: green;">Connection Open</span>');
-        }
+        ws.onopen = function(evt) {}
         ws.onclose = function(evt) {
-            //print('<span style="color: red;">Connection Closed</span>')
             ws = null;
         }
         ws.onmessage = function(evt) {
             print(parseInfo(evt));
         }
-        ws.onerror = function(evt) {
-            //print('<span style="color: red;">Error: </span>' + parseInfo(evt));
-        }
+        ws.onerror = function(evt) {}
     };
 
     newSocket()
