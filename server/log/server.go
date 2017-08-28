@@ -19,8 +19,6 @@ const (
 
 var (
 	writer          *Writer
-	ch_pub_status   map[string]chan ahlog.Info
-	lock_pub_status sync.Mutex
 	ch_sub_status   map[string][]chan ahlog.Info
 	lock_sub_status sync.Mutex
 )
@@ -44,26 +42,15 @@ func (this *Logger) LogStatus(ctx context.Context, req *ahlog.Info, rsp *ahlog.I
 		host := md["X-Host"]
 
 		key := fmt.Sprintf("%s@%s/%s", user, host, pid)
-		lock_pub_status.Lock()
-		if _, ok := ch_pub_status[key]; !ok {
-			ch_pub_status[key] = make(chan ahlog.Info)
-		}
-		lock_pub_status.Unlock()
 
-		select {
-		case ch_pub_status[key] <- *req:
-			lock_sub_status.Lock()
-			ch_subs := ch_sub_status[key]
-			lock_sub_status.Unlock()
-			for _, ch_sub := range ch_subs {
-				select {
-				case ch_sub <- *req:
-				default:
-				}
+		lock_sub_status.Lock()
+		ch_subs := ch_sub_status[key]
+		lock_sub_status.Unlock()
+		for _, ch_sub := range ch_subs {
+			select {
+			case ch_sub <- *req:
+			default:
 			}
-			return nil
-		default:
-			return nil
 		}
 	}
 	return nil
@@ -99,7 +86,6 @@ func init() {
 		F  *os.File
 		Ts int64
 	})}
-	ch_pub_status = make(map[string]chan ahlog.Info)
 	ch_sub_status = make(map[string][]chan ahlog.Info)
 }
 
