@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"sync"
 	"time"
 
 	"golang.org/x/net/context"
@@ -17,8 +18,11 @@ const (
 )
 
 var (
-	writer         *Writer
-	status_channel map[string]chan ahlog.Info
+	writer          *Writer
+	ch_pub_status   map[string]chan ahlog.Info
+	lock_pub_status sync.Mutex
+	ch_sub_status   map[string][]chan ahlog.Info
+	lock_sub_status sync.Mutex
 )
 
 type Logger struct{}
@@ -40,12 +44,23 @@ func (this *Logger) LogStatus(ctx context.Context, req *ahlog.Info, rsp *ahlog.I
 		host := md["X-Host"]
 
 		key := fmt.Sprintf("%s@%s/%s", user, host, pid)
-		if _, ok := status_channel[key]; !ok {
-			status_channel[key] = make(chan ahlog.Info, 10)
+		lock_pub_status.Lock()
+		if _, ok := ch_pub_status[key]; !ok {
+			ch_pub_status[key] = make(chan ahlog.Info)
 		}
+		lock_pub_status.Unlock()
 
 		select {
-		case status_channel[key] <- *req:
+		case ch_pub_status[key] <- *req:
+			lock_sub_status.Lock()
+			ch_subs := ch_sub_status[key]
+			lock_sub_status.Unlock()
+			for _, ch_sub := range ch_subs {
+				select {
+				case ch_sub <- *req:
+				default:
+				}
+			}
 			return nil
 		default:
 			return nil
@@ -61,15 +76,21 @@ func (this *Logger) Status(ctx context.Context, req *ahlog.Info, stream ahlog.Lo
 		host := md["X-Host"]
 
 		key := fmt.Sprintf("%s@%s/%s", user, host, pid)
+		ch_sub := make(chan ahlog.Info)
+		lock_sub_status.Lock()
+		ch_sub_status[key] = append(ch_sub_status[key], ch_sub)
+		lock_sub_status.Unlock()
+
 		for {
 			select {
-			case c := <-status_channel[key]:
+			case c := <-ch_sub:
 				if err := stream.Send(&ahlog.Info{Info: c.Info, Ts: c.Ts}); err != nil {
 					return err
 				}
 			}
 		}
 	}
+
 	return nil
 }
 
@@ -78,7 +99,8 @@ func init() {
 		F  *os.File
 		Ts int64
 	})}
-	status_channel = make(map[string]chan ahlog.Info)
+	ch_pub_status = make(map[string]chan ahlog.Info)
+	ch_sub_status = make(map[string][]chan ahlog.Info)
 }
 
 func main() {
