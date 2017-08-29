@@ -38,26 +38,30 @@ window.addEventListener("load", function(evt) {
 
     var newSocket = function() {
         ws = new WebSocket(wsUri);
-        ws.onopen = function(evt) {}
+        ws.onopen = function(evt) {
+            if ($('#tag').val().length > 0) {
+                var req = {info: $('#tag').val()}
+                ws.send(JSON.stringify(req))
+            }
+        }
         ws.onclose = function(evt) {
-            ws = null;
+            reconnectSocket()
         }
         ws.onmessage = function(evt) {
-            print(parseInfo(evt));
+            print(parseInfo(evt))
         }
-        ws.onerror = function(evt) {}
+        ws.onerror = function(evt) {
+        }
     };
 
-    newSocket()
-
-    $('#btn-go').click(function() {
-        if (!ws) {
+    var reconnectSocket = function() {
+        if (!ws || ws.readyState == WebSocket.CLOSED) {
             newSocket()
         }
-        var req = {
-            info: $('#tag').val()
-        }
-        ws.send(JSON.stringify(req))
+    };
+
+    $('#btn-go').click(function() {
+        reconnectSocket()
         return false
     })
 })
