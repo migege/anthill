@@ -3,12 +3,24 @@ syntax = "proto3";
 package com.mayibot.ah.log;
 
 service Logger {
-    rpc Log(Info) returns (Info) {}
-    rpc LogStatus(Info) returns (Info) {}
+    rpc Log(Info) returns (Response) {}
+    rpc LogStatus(Info) returns (Response) {}
+    rpc LogProfit(Profit) returns (Response) {}
     rpc Status(Info) returns (stream Info) {}
+}
+
+message Response {
+    int64 code = 1;
+    string message = 2;
 }
 
 message Info {
     string info = 1;
     int64 ts = 2;
+}
+
+message Profit {
+    double profit = 1;
+    string info = 2;
+    int64 ts = 3;
 }

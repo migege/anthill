@@ -25,7 +25,7 @@ var (
 
 type Logger struct{}
 
-func (this *Logger) Log(ctx context.Context, req *ahlog.Info, rsp *ahlog.Info) error {
+func (this *Logger) Log(ctx context.Context, req *ahlog.Info, rsp *ahlog.Response) error {
 	if md, ok := metadata.FromContext(ctx); ok {
 		user := md["X-User-Id"]
 		pid := md["X-Process-Id"]
@@ -35,7 +35,7 @@ func (this *Logger) Log(ctx context.Context, req *ahlog.Info, rsp *ahlog.Info) e
 	return nil
 }
 
-func (this *Logger) LogStatus(ctx context.Context, req *ahlog.Info, rsp *ahlog.Info) error {
+func (this *Logger) LogStatus(ctx context.Context, req *ahlog.Info, rsp *ahlog.Response) error {
 	if md, ok := metadata.FromContext(ctx); ok {
 		user := md["X-User-Id"]
 		pid := md["X-Process-Id"]
@@ -54,6 +54,11 @@ func (this *Logger) LogStatus(ctx context.Context, req *ahlog.Info, rsp *ahlog.I
 		}
 	}
 	return nil
+}
+
+func (this *Logger) LogProfit(ctx context.Context, req *ahlog.Profit, rsp *ahlog.Response) error {
+	err := this.Log(ctx, &ahlog.Info{Info: req.Info, Ts: req.Ts}, rsp)
+	return err
 }
 
 func (this *Logger) Status(ctx context.Context, req *ahlog.Info, stream ahlog.Logger_StatusStream) error {
