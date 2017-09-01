@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"sync"
 	"time"
@@ -27,24 +26,17 @@ type Logger struct{}
 
 func (this *Logger) Log(ctx context.Context, req *ahlog.Info, rsp *ahlog.Response) error {
 	if md, ok := metadata.FromContext(ctx); ok {
-		user := md["X-User-Id"]
-		pid := md["X-Process-Id"]
-		host := md["X-Host"]
-		writer.Write(user, host, pid, req.Info)
+		antId := md["AntId"]
+		writer.Write(antId, req.Info)
 	}
 	return nil
 }
 
 func (this *Logger) LogStatus(ctx context.Context, req *ahlog.Info, rsp *ahlog.Response) error {
 	if md, ok := metadata.FromContext(ctx); ok {
-		user := md["X-User-Id"]
-		pid := md["X-Process-Id"]
-		host := md["X-Host"]
-
-		key := fmt.Sprintf("%s@%s/%s", user, host, pid)
-
+		antId := md["AntId"]
 		lock_sub_status.Lock()
-		ch_subs := ch_sub_status[key]
+		ch_subs := ch_sub_status[antId]
 		lock_sub_status.Unlock()
 		for _, ch_sub := range ch_subs {
 			select {
@@ -63,20 +55,16 @@ func (this *Logger) LogProfit(ctx context.Context, req *ahlog.Profit, rsp *ahlog
 
 func (this *Logger) Status(ctx context.Context, req *ahlog.Info, stream ahlog.Logger_StatusStream) error {
 	if md, ok := metadata.FromContext(ctx); ok {
-		user := md["X-User-Id"]
-		pid := md["X-Process-Id"]
-		host := md["X-Host"]
-
-		key := fmt.Sprintf("%s@%s/%s", user, host, pid)
+		antId := md["AntId"]
 		ch_sub := make(chan ahlog.Info, 1)
 		lock_sub_status.Lock()
-		ch_sub_status[key] = append(ch_sub_status[key], ch_sub)
+		ch_sub_status[antId] = append(ch_sub_status[antId], ch_sub)
 		lock_sub_status.Unlock()
 
 		for {
 			select {
 			case c := <-ch_sub:
-				if err := stream.Send(&ahlog.Info{Info: c.Info, Ts: c.Ts}); err != nil {
+				if err := stream.Send(&c); err != nil {
 					return err
 				}
 			}

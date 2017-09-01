@@ -27,8 +27,7 @@ func (this *Writer) GC() {
 	}
 }
 
-func (this *Writer) Write(user, host, pid, info string) {
-	k := fmt.Sprintf("%s@%s/%s", user, host, pid)
+func (this *Writer) Write(k, info string) {
 	var f *os.File
 	if v, ok := this.UserFileMap[k]; ok && v.F != nil {
 		f = v.F
@@ -38,7 +37,7 @@ func (this *Writer) Write(user, host, pid, info string) {
 			Ts int64
 		}{f, time.Now().Unix()}
 	} else {
-		fn := fmt.Sprintf("/home/aib/apps/ant/logs/%s.%s.%s.log", user, host, pid)
+		fn := fmt.Sprintf("/home/aib/apps/ant/logs/%s.log", k)
 		f, err := os.OpenFile(fn, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0666)
 		if err != nil {
 			panic(err)
