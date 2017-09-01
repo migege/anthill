@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"sync"
 	"time"
@@ -26,7 +27,8 @@ type Logger struct{}
 
 func (this *Logger) Log(ctx context.Context, req *ahlog.Info, rsp *ahlog.Response) error {
 	if md, ok := metadata.FromContext(ctx); ok {
-		antId := md["AntId"]
+		fmt.Println(md)
+		antId := md["Ant-Id"]
 		writer.Write(antId, req.Info)
 	}
 	return nil
@@ -34,7 +36,8 @@ func (this *Logger) Log(ctx context.Context, req *ahlog.Info, rsp *ahlog.Respons
 
 func (this *Logger) LogStatus(ctx context.Context, req *ahlog.Info, rsp *ahlog.Response) error {
 	if md, ok := metadata.FromContext(ctx); ok {
-		antId := md["AntId"]
+		fmt.Println(md)
+		antId := md["Ant-Id"]
 		lock_sub_status.Lock()
 		ch_subs := ch_sub_status[antId]
 		lock_sub_status.Unlock()
@@ -55,7 +58,7 @@ func (this *Logger) LogProfit(ctx context.Context, req *ahlog.Profit, rsp *ahlog
 
 func (this *Logger) Status(ctx context.Context, req *ahlog.Info, stream ahlog.Logger_StatusStream) error {
 	if md, ok := metadata.FromContext(ctx); ok {
-		antId := md["AntId"]
+		antId := md["Ant-Id"]
 		ch_sub := make(chan ahlog.Info, 1)
 		lock_sub_status.Lock()
 		ch_sub_status[antId] = append(ch_sub_status[antId], ch_sub)

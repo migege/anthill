@@ -54,7 +54,7 @@ func (*UserHandler) NewQueen(ctx context.Context, req *ahuser.Queen, rsp *ahuser
 
 func (*UserHandler) FireCommand(ctx context.Context, req *ahuser.Command, rsp *ahuser.Response) error {
 	if md, ok := metadata.FromContext(ctx); ok {
-		if v, ok := md["QueenId"]; ok {
+		if v, ok := md["Queen-Id"]; ok {
 			queenId, _ := strconv.ParseUint(v, 10, 64)
 			if ch, ok := ch_command[queenId]; ok {
 				select {
