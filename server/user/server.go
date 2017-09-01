@@ -25,6 +25,7 @@ func (*UserHandler) Register(ctx context.Context, req *ahuser.User, rsp *ahuser.
 }
 
 func (*UserHandler) Login(ctx context.Context, req *ahuser.User, rsp *ahuser.User) error {
+	rsp.Uid = req.Uid
 	// TODO
 	switch req.Uid {
 	case 10001, 10003, 10004:
