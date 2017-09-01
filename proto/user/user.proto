@@ -1,20 +1,54 @@
 syntax = "proto3";
 
-package migege.anthill.user;
+package com.mayibot.ah.user;
 
 service UserService {
-    rpc Register(User) returns (Account) {}
-    rpc Login(User) returns (Account) {}
+    rpc Register(User) returns (User) {}
+    rpc Login(User) returns (User) {}
+    rpc NewQueen(Queen) returns (Queen) {}
+    rpc FireCommand(Command) returns (Response) {}
+    rpc OnCommand(Queen) returns (stream Command) {}
 }
 
 message User {
-    string phone = 1;
+    uint64 uid = 1;
     string username = 2;
-    string password = 3;
+    string phone = 3;
+    string password = 4;
+    string email = 5;
+
+    enum Status {
+        UNACTIVATED = 0;
+        ACTIVATED = 1;
+        FROZEN = 2;
+    }
+    Status status = 6;
+    string ctime = 7;
+    int64 expired = 8;
 }
 
-message Account {
-    User user = 1;
-    int64 ts_expire = 2;
-    bool frozen = 3;
+message Queen {
+    uint64 id = 1;
+    string hostname = 3;
+    int32 pid = 4;
+    string osname = 5;
+    string ip_addr = 6;
+    string ctime = 7;
+}
+
+message Command {
+    enum Action {
+        RESTART = 0;
+        STOP = 1;
+        SYNC_CONFIG = 2;
+    }
+    Action action = 1;
+    uint64 ant_id = 2;
+    string data = 3;
+    int64 ts = 4;
+}
+
+message Response {
+    int64 code = 1;
+    string message = 2;
 }
