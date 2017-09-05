@@ -60,7 +60,7 @@ func (*UserHandler) FireCommand(ctx context.Context, req *ahuser.Command, rsp *a
 			if ch, ok := ch_command[queenId]; ok {
 				select {
 				case ch <- *req:
-					rsp.Code = 0
+					rsp.Code = 200
 					rsp.Message = "ok"
 				default:
 					rsp.Code = 400
